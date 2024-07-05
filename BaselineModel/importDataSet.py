@@ -3,20 +3,12 @@ import os
 import shutil
 from sklearn.model_selection import train_test_split
 from torchvision.datasets import ImageFolder
+from torchvision import transforms
+import numpy as np
+import torch
+from torch.utils.data import DataLoader
 
 def prepare_datasets(data_dir, train_dir, val_dir, test_dir, test_size=0.30, val_test_split=0.50, seed=30):
-    """
-    Prepare datasets by splitting into training, validation, and test sets and copying them into respective directories.
-
-    Parameters:
-        data_dir (str): Directory containing the original dataset.
-        train_dir (str): Directory to store training data.
-        val_dir (str): Directory to store validation data.
-        test_dir (str): Directory to store test data.
-        test_size (float): Proportion of the dataset to include in the test split (relative to the entire dataset).
-        val_test_split (float): Proportion of the test set to include in the validation split.
-        seed (int): Random seed for reproducibility.
-    """
     random.seed(seed)
     
     # Ensure base directories exist
@@ -43,13 +35,34 @@ def prepare_datasets(data_dir, train_dir, val_dir, test_dir, test_size=0.30, val
     copy_images(val_individuals, data_dir, val_dir)
     copy_images(test_individuals, data_dir, test_dir)
 
+    # Define transformations
+    transform = transforms.Compose([
+        transforms.Resize((224, 224)),  # Resize to 224x224 pixels
+        transforms.ToTensor(),  # Convert to tensor
+        transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))  # Normalize
+    ])
+
     # Load datasets using ImageFolder
-    train_dataset = ImageFolder(train_dir)
-    val_dataset = ImageFolder(val_dir)
-    test_dataset = ImageFolder(test_dir)
+    train_dataset = ImageFolder(train_dir, transform=transform)
+    val_dataset = ImageFolder(val_dir, transform=transform)
+    test_dataset = ImageFolder(test_dir, transform=transform)
+
+    # Convert datasets to numpy arrays for Random Forest
+    def dataset_to_numpy(dataset):
+        images, labels = [], []
+        for img, label in DataLoader(dataset, batch_size=1):
+            img = img.view(-1).numpy()  # Flatten the image
+            images.append(img)
+            labels.append(label.numpy()[0])
+        return np.array(images), np.array(labels)
+
+    X_train, y_train = dataset_to_numpy(train_dataset)
+    X_val, y_val = dataset_to_numpy(val_dataset)
+    X_test, y_test = dataset_to_numpy(test_dataset)
 
     # Output information about the datasets
-    print(f"Number of training images: {len(train_dataset)}")
-    print(f"Number of validation images: {len(val_dataset)}")
-    print(f"Number of test images: {len(test_dataset)}")
+    print(f"Number of training images: {len(y_train)}")
+    print(f"Number of validation images: {len(y_val)}")
+    print(f"Number of test images: {len(y_test)}")
 
+    return X_train, y_train, X_val, y_val, X_test, y_test
