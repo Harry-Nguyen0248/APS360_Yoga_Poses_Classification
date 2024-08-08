@@ -1,68 +1,54 @@
-import random
 import os
+import random
 import shutil
-from sklearn.model_selection import train_test_split
-from torchvision.datasets import ImageFolder
-from torchvision import transforms
 import numpy as np
-import torch
-from torch.utils.data import DataLoader
+from sklearn.model_selection import train_test_split
 
-def prepare_datasets(data_dir, train_dir, val_dir, test_dir, test_size=0.30, val_test_split=0.50, seed=30):
+def prepare_datasets(data_dir, train_dir, val_dir, test_dir, test_size=0.30, val_test_split=0.50, seed=42):
     random.seed(seed)
-    
+
     # Ensure base directories exist
     os.makedirs(train_dir, exist_ok=True)
     os.makedirs(val_dir, exist_ok=True)
     os.makedirs(test_dir, exist_ok=True)
 
-    # Get all individuals (directories) within the data directory
-    individuals = [name for name in os.listdir(data_dir) if os.path.isdir(os.path.join(data_dir, name))]
+    #Get all images and labels
+    all_images = []
+    labels = []
 
-    # Split individuals into train, val, test sets
-    train_individuals, temp_individuals = train_test_split(individuals, test_size=test_size, random_state=seed)
-    val_individuals, test_individuals = train_test_split(temp_individuals, test_size=val_test_split, random_state=seed)
+    for label in os.listdir(data_dir):
+        label_dir = os.path.join(data_dir, label)
+        if os.path.isdir(label_dir):
+            for img_name in os.listdir(label_dir):
+                img_path = os.path.join(label_dir, img_name)
+                if os.path.isfile(img_path):
+                    all_images.append(img_path)
+                    labels.append(label)
 
-    # Define a function to copy images to new directories
-    def copy_images(individuals, source_dir, dest_dir):
-        for individual in individuals:
-            individual_dir = os.path.join(source_dir, individual)
-            if os.path.isdir(individual_dir):
-                shutil.copytree(individual_dir, os.path.join(dest_dir, individual), dirs_exist_ok=True)
+    # Convert lists to arrays for convenience
+    all_images = np.array(all_images)
+    labels = np.array(labels)
 
-    # Copy individuals into respective directories
-    copy_images(train_individuals, data_dir, train_dir)
-    copy_images(val_individuals, data_dir, val_dir)
-    copy_images(test_individuals, data_dir, test_dir)
+    # Create directories for each label in the train, val, and test directories
+    for label in np.unique(labels):
+        os.makedirs(os.path.join(train_dir, label), exist_ok=True)
+        os.makedirs(os.path.join(val_dir, label), exist_ok=True)
+        os.makedirs(os.path.join(test_dir, label), exist_ok=True)
 
-    # Define transformations
-    transform = transforms.Compose([
-        transforms.Resize((224, 224)),  # Resize to 224x224 pixels
-        transforms.ToTensor(),  # Convert to tensor
-        transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))  # Normalize
-    ])
+    # Split the dataset within each label
+    # 70-30 for train_imgs and temp_imgs
+    # 50-50 for val and test images 
+    for label in np.unique(labels):
+        label_images = all_images[labels == label]
+        train_imgs, temp_imgs = train_test_split(label_images, test_size=test_size, random_state=seed)
+        val_imgs, test_imgs = train_test_split(temp_imgs, test_size=val_test_split, random_state=seed)
 
-    # Load datasets using ImageFolder
-    train_dataset = ImageFolder(train_dir, transform=transform)
-    val_dataset = ImageFolder(val_dir, transform=transform)
-    test_dataset = ImageFolder(test_dir, transform=transform)
+        # Copy images to their respective directories
+        for img_path in train_imgs:
+            shutil.copy(img_path, os.path.join(train_dir, label))
+        for img_path in val_imgs:
+            shutil.copy(img_path, os.path.join(val_dir, label))
+        for img_path in test_imgs:
+            shutil.copy(img_path, os.path.join(test_dir, label))
 
-    # Convert datasets to numpy arrays for Random Forest
-    def dataset_to_numpy(dataset):
-        images, labels = [], []
-        for img, label in DataLoader(dataset, batch_size=1):
-            img = img.view(-1).numpy()  # Flatten the image
-            images.append(img)
-            labels.append(label.numpy()[0])
-        return np.array(images), np.array(labels)
-
-    X_train, y_train = dataset_to_numpy(train_dataset)
-    X_val, y_val = dataset_to_numpy(val_dataset)
-    X_test, y_test = dataset_to_numpy(test_dataset)
-
-    # Output information about the datasets
-    print(f"Number of training images: {len(y_train)}")
-    print(f"Number of validation images: {len(y_val)}")
-    print(f"Number of test images: {len(y_test)}")
-
-    return X_train, y_train, X_val, y_val, X_test, y_test
+    print("Dataset preparation complete.")
