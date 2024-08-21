@@ -14,21 +14,21 @@ providing a tool that could help users refine their practice. The model utilizes
 4. Download Dataset
 - Download the yoga pose dataset from Kaggle [here](https://www.kaggle.com/datasets/nhgh08/skeletonized-final)
 
-#Model Architecture
+# Model Architecture
 - Residual Blocks: To maintain gradient flow and improve training efficiency.
 - Two Residual Classes: Increase depth while managing complexity.
 - Skeletonization: Images are processed through OpenPose to focus on pose structure rather than appearance.
 
-  #Results
+# Results
   - Baseline Model: Achieved 41% accuracy using a Random Forest classifier.
   - Primary Model: Achieved 69.25% accuracy using the ResNet-inspired CNN.
   - Challenges: The model experienced some overfitting and difficulty with certain poses  due to their similarities and unclarity.
  
 
- #License 
+# License 
  This project is licensed under the MIT License
 
- #Acknowledgments
+# Acknowledgments
  Special thanks to the University of Toronto APS360 Team:
  - Marcus Hong
  - Rosalie Pampolina
