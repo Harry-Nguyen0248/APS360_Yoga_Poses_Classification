@@ -4,18 +4,15 @@ This project implements deep learning to classify yoga poses from images using a
 
 # Description
 The goal of this project is to use deep learning to classify yoga poses from images,
-providing a tool that could help users refine their practice. The model utilizes a CNN architecture inspired by ResNet, which allows for effective feature extraction while avoiding the vashing gradient problem. The project is built on a dataset of 5,994 images covering 107 yoga poses (numbers to be updated), with the data being processed through OpenPose for skeletonization. 
+providing a tool that could help users refine their practice. The model utilizes a CNN architecture inspired by ResNet, which allows for effective feature extraction while avoiding the vashing gradient problem. The project is built on a dataset of 2923 images covering 55 yoga poses, with the data being processed through OpenPose for skeletonization. 
 
 # Installation
 1. Clone the Repository
-```bash
-git clone https://github.com/your-username/yoga-pose-classification.git
-cd yoga-pose-classification
+```git clone https://github.com/your-username/yoga-pose-classification.git cd yoga-pose-classification```
 3. Install Dependencies
-```bash
-pip install -r requirements.txt
+```pip install -r requirements.txt ```
 4. Download Dataset
-- Download the yoga pose dataset from Kaggle [here]()
+- Download the yoga pose dataset from Kaggle [here](https://www.kaggle.com/datasets/nhgh08/skeletonized-final)
 
 #Model Architecture
 - Residual Blocks: To maintain gradient flow and improve training efficiency.
