@@ -33,4 +33,5 @@ providing a tool that could help users refine their practice. The model utilizes
  - Marcus Hong
  - Rosalie Pampolina
  - George Wang
+
 and to the creators of the Kaggle original dataset and OpenPose for their valuable resources.
